@@ -1,6 +1,7 @@
 import AudioManager from './AudioManager.js';
-import drawRectangle from './utils/shapes.js';
+import {drawRectangle, drawCircle} from './utils/shapes.js';
 import Compressor from './Compressor.js';
+import Sprite from './Sprite.js';
 
 //Main Frame Game 
 const audioManager = new AudioManager();
@@ -8,7 +9,7 @@ const gamecanvas = document.getElementById('game');
 const gcanvas = gamecanvas.getContext('2d');
 gcanvas.canvas.width = 512;
 gcanvas.canvas.height = 256;
-
+const color_C3C7CB = '#C3C7CB';
 
 //Draw Methods
 const canvas1 = document.getElementById('draw');
@@ -22,35 +23,61 @@ let painting = false;
 canvas1.addEventListener('mousedown', () => painting = true);
 canvas1.addEventListener('mouseup', () => painting = false);
 canvas1.addEventListener('mousemove', draw);
-document.getElementById('clear').addEventListener('click', () => {
-    ctx1.clearRect(0 ,0, canvas1.width, canvas1.height);
 
-})
+//Sprite Drawing
+const Player = new Image();
+Player.src = './public/compressed2.png';
+const Sword = new Image();
+Sword.src = './public/compresseds1.png';
+let Psprite, Ssprite;
+Sword.onload = () =>{ 
+    Psprite = new Sprite(50, 180, Player, gcanvas, 0.5); 
+    Ssprite = new Sprite(85, 180, Sword, gcanvas, 1, Math.PI/1.60); 
+}
 
 //Main Game Draw scene
 function drawStartScreen() {
-    const [x, y, w, h] = [190, 100, 120, 50];
-    gcanvas.fillStyle = '#C3C7CB'; gcanvas.fillRect(x, y, w, h);
+    const [x, y, w, h] = [190, 100, 120, 50];drawRectangle(gcanvas, 0,0, 512, 256, 'white')
+    gcanvas.fillStyle = color_C3C7CB; gcanvas.fillRect(x, y, w, h);
     gcanvas.fillStyle = '#FFF'; gcanvas.fillRect(x, y, w, 2); gcanvas.fillRect(x, y, 2, h);
     gcanvas.fillStyle = '#000'; gcanvas.fillRect(x + w - 2, y, 2, h); gcanvas.fillRect(x, y + h - 2, w, 2);
     gcanvas.font = '16px Arial'; gcanvas.textAlign = 'center'; gcanvas.fillStyle = '#000'; gcanvas.fillText('Play', x + w / 2, y + h / 2 + 5);
-    drawRectangle(gcanvas, 0, gcanvas.canvas.height-20, gcanvas.canvas.width, 50, '#C3C7CB')
-    drawRectangle(gcanvas, 0, -25, gcanvas.canvas.width, 50, '#C3C7CB')
-    drawRectangle(gcanvas, 0, 0, 20, gcanvas.canvas.height, '#C3C7CB')
-    drawRectangle(gcanvas, gcanvas.canvas.width-20, 0, 20, gcanvas.canvas.height, '#C3C7CB')
+    DrawBorder(color_C3C7CB);
+
+}
+
+//Draw borders to box
+function DrawBorder(color){
+    for (let rect of [
+        [0, gcanvas.canvas.height - 30, gcanvas.canvas.width, 50, color],
+        [0, -20, gcanvas.canvas.width, 50, color],
+        [0, 0, 20, gcanvas.canvas.height, color],
+        [gcanvas.canvas.width - 20, 0, 20, gcanvas.canvas.height, color]
+    ])drawRectangle(gcanvas, ...rect);
 }
 
 function startGameLoop() {
     gcanvas.save();
     gcanvas.clearRect(0, 0, gcanvas.canvas.width, gcanvas.canvas.height);
-    drawRectangle(gcanvas, 0, 256-50, 512, 50)
-    console.log('Game loop started');
+    drawRectangle(gcanvas, 0, 0, 512, 256, color_C3C7CB);
+    drawCircle(gcanvas, 470, 52, 15);
+    DrawBorder();
+    Psprite.draw();
+    Ssprite.draw();
+    Psprite.moveTo(0.2,0);
+    Ssprite.moveTo(0.2,0);
     gcanvas.restore();
 }
 
-function onClick() {
-    // audioManager.playMelody('melody1',true, 0.3/2);
+// Game loop function
+function gameLoop() {
     startGameLoop();
+    requestAnimationFrame(gameLoop);
+}
+
+function onClick() {
+    audioManager.playMelody('melody1',true, 0.3/2);
+    gameLoop()
     gamecanvas.removeEventListener('click', onClick);
 }
 gamecanvas.addEventListener('click', onClick);
@@ -77,20 +104,19 @@ function draw(e) {
         }
     }
 }
-document.getElementById('submit').addEventListener('click', () => {
-    let sizes = [128, 64, 32, 16];
+document.getElementById('submit').addEventListener('click', async () => {
+    ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
     let compressedMatrix = matrix;
-    sizes.forEach(size => {
-        let compressor = new Compressor(compressedMatrix, size);
-        compressedMatrix = compressor.compress(0.10);
+    [128, 64, 32, 16].forEach(size => {
+        compressedMatrix = new Compressor(compressedMatrix, size).compress(0.10);
     });
-    new Compressor(compressedMatrix, 16).compress(0.10, true)
-    .then(topKey => {
-        console.log('Topmost similarity key:', topKey);
-    })
-    .catch(error => {
-        console.error('Error during compression or comparison:', error);
-    });
+    try {
+        let topKey = await new Compressor(compressedMatrix, 16).compress(0.10, true);
+        console.log(topKey);
+    } catch (error) {
+        console.error(error);
+    }
 });
+
 
 drawStartScreen();

@@ -7,21 +7,14 @@ export default class AudioManager {
             'melody1': 'miffif00mifbfh00heaehe00ifffif00iheaehefffff',
             'melody2': 'aaabbb00aaabbc00aaabbb00aaabbc00aaabbcccbbbb'
         };
-        this.loopIntervalId = null; // Track the loop interval ID
+        this.loopIntervalId = null;
     }
-
     playMelody(key, loop = false, I = 0.3) {
         const melody = this.melodies[key];
-        if (!melody) {
-            console.log(`Melody not found for key: ${key}`);
-            return;
-        }
         this.play(melody, loop, I);
     }
-
     play(melody, loop = false, I = 0.3) {
         if (!melody) return;
-        const melodyLength = melody.length * I;
         const startTime = this.context.currentTime;
         const playMelody = (startOffset) => {
             for (let i = 0; i < melody.length; i++) {
@@ -39,7 +32,7 @@ export default class AudioManager {
         };
         if (loop) {
             if (this.loopIntervalId) clearInterval(this.loopIntervalId); 
-            this.loopIntervalId = setInterval(() => playMelody(0), melodyLength * 1000 + 300);
+            this.loopIntervalId = setInterval(() => playMelody(0), melody.length * I);
         } else {
             if (this.loopIntervalId) clearInterval(this.loopIntervalId); 
             playMelody(0);

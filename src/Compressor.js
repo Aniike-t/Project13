@@ -32,34 +32,28 @@ export default class Compressor {
     }
 
     compareWithTemplates(scaledMatrix) {
-        return fetch('public/template.json')
-            .then(response => response.json())
-            .then(template => {
-                let similarities = {};
-                let topKey = null;
-                let maxSimilarity = 0;
-
-                Object.keys(template).forEach(key => {
-                    const templateMatrix1 = convertTemplateToMatrix(template[key]);
-                    const templateMatrix = applyReverseMappingToMatrix(templateMatrix1);
-                    const similarity = compareMatrices(scaledMatrix, templateMatrix);
-
-                    similarities[key] = similarity;
-                    console.log(`Similarity with template ${key}: ${similarity}%`);
-                    
-                    if (similarity > 60) {
-                        const alteredSimilarity = (similarity - 60) * 100 / 40;
-                        console.log(`Similarity altered = ${alteredSimilarity}%`);
-                        if (alteredSimilarity > maxSimilarity) {
-                            maxSimilarity = alteredSimilarity;
-                            topKey = key;
-                        }
-                    }
-                });
-
-                console.log('Topmost similarity key:', topKey);
-                return topKey;
-            });
+        const template = {
+            "0":["0000000000000000","0005911111180000","0591111111111000","0711115491111100","2911520000911140","7111000000071190","7112000000008190","7112000000008190","7112000000008190","7112000000001190","7911000000021190","5811140000411190","0781115445111100","0088881111111500","0005555888855000","0000055555500000"],
+            "13":["0000000000000000","0000000000000000","0111199997777760","0111111111111192","0333333333333322","0000000000000000","0099900000055500","0999900000069820","0911900000079820","0911006982279820","0911227997229770","0911111111119770","0711111111111870","0057888377765500","0000000000000000","0000000000000000"]
+        };
+        let similarities = {};
+        let topKey = null;
+        let maxSimilarity = 0;
+        Object.keys(template).forEach(key => {
+            const similarity = compareMatrices(scaledMatrix, applyReverseMappingToMatrix(convertTemplateToMatrix(template[key])));
+            similarities[key] = similarity;
+            console.log(`Similarity with template ${key}: ${similarity}%`);
+            if (similarity > 55) {
+                const alteredSimilarity = (similarity - 55) * 100 / 55;
+                console.log(`Similarity altered = ${alteredSimilarity}%`);
+                if (alteredSimilarity > maxSimilarity) {
+                    maxSimilarity = alteredSimilarity;
+                    topKey = key;
+                }
+            }
+        });
+        console.log('Topmost similarity key:', topKey);
+        return topKey;
     }
 
     createMatrix(size) {
@@ -77,20 +71,9 @@ function applyReverseMappingToMatrix(matrix) {
 }
 
 function reverseMapToAverage(value) {
-    switch(value) {
-        case 9: return 0.9;
-        case 8: return 0.8;
-        case 7: return 0.7;
-        case 6: return 0.6;
-        case 5: return 0.5;
-        case 4: return 0.4;
-        case 3: return 0.3;
-        case 2: return 0.2;
-        case 1: return 1;
-        case 0: return 0.0;
-        default: return 0.0; 
-    }
+    return value === 1 ? 1 : value >= 0 && value <= 9 ? value / 10 : 0;
 }
+
 function compareMatrices(scaledMatrix, templateMatrix) {
     let countMatch = 0;
     let onesValueOG = 0;
