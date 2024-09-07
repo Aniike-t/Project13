@@ -1,5 +1,5 @@
 import AudioManager from './AudioManager.js';
-import {drawRectangle, drawCircle, drawLightning} from './utils/shapes.js';
+import {drawRectangle, drawCircle, drawLightning, healthColor} from './utils/shapes.js';
 import Compressor from './Compressor.js';
 import Sprite from './Sprite.js';
 import EnemySprite from './EnemySprite.js';
@@ -9,9 +9,11 @@ const audioManager = new AudioManager();
 const gamecanvas = document.getElementById('game');
 const gcanvas = gamecanvas.getContext('2d');
 gcanvas.canvas.height = 256;
-gcanvas.canvas.width = gcanvas.canvas.height*2;
+gcanvas.canvas.width = gcanvas.canvas.height*2+4;
 let topKey = false;
+let maxHealth = 50;
 const color_C3C7CB = '#C3C7CB';
+
 
 //Draw Methods
 const canvas1 = document.getElementById('draw');
@@ -61,7 +63,7 @@ function DrawBorder(color){
 function startGameLoop() {
     gcanvas.save();
     gcanvas.clearRect(0, 0, gcanvas.canvas.width, gcanvas.canvas.height);
-    drawRectangle(gcanvas, 0, 0, 512, 256, color_C3C7CB);
+    drawRectangle(gcanvas, 0, 0, 512, 256, healthColor(maxHealth,Psprite.health));
     drawEnemies(gcanvas);
     DrawBorder();
     Psprite.draw();
@@ -73,23 +75,18 @@ function startGameLoop() {
         drawLightning(gcanvas, Ssprite.x, Ssprite.y, Math.random() * gcanvas.canvas.width, Math.random() * gcanvas.canvas.width);
     }
 
-    
-    // Psprite.moveTo(0.2,0);
-    // Ssprite.moveTo(0.2,0);
     gcanvas.restore();
 }
 
 // Game loop function
 function gameLoop() {
     startGameLoop();
-
     requestAnimationFrame(gameLoop);
 }
 
 function onClick() {
-    audioManager.playMelody('1',false,0.05);
+    audioManager.playMelody('1',true,0.1);
     gameLoop();
-    
     setInterval(spawnEnemy, 5000);
     gamecanvas.removeEventListener('click', onClick);
 }
@@ -115,6 +112,8 @@ function draw(e) {
         }
     }
 }
+
+
 document.getElementById('submit').addEventListener('click', async () => {
     ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
     let compressedMatrix = matrix;
@@ -124,33 +123,49 @@ document.getElementById('submit').addEventListener('click', async () => {
     topKey = await new Compressor(compressedMatrix, 16).compress(0.10, true);
     if (topKey === '13') {
         matrix = Array(size).fill(null).map(() => Array(size).fill(0));
+        //Remove 5 health from every enemy
+        enemies.forEach(enemy => {
+            enemy.health -= 5;
+        });
+
         setTimeout(() => {
             topKey = false
         }, 1000);return;
+    }else{
+        RemovePhealth(1);
     }
-    audioManager.playMelody('3');
+    audioManager.playMelody('3',false, 0.3);
 });
 
 
 
 let enemies = [];
-const enemySpeed = 0.5; 
+const enemySpeed = 0.25; 
 
 function spawnEnemy() {
-    const yPos = Math.random() < 0.5 ? 40 : 215; // Randomly select x = 50 (rectangle) or x = 210 (circle)
-    const shape = yPos === 40 ? 'rectangle' : 'circle'; // Choose shape based on x position
-    const enemy = new EnemySprite(512, yPos, null, gcanvas, 1, 0, 1, 150, shape, 5); // Start at y = 512
+    const yPos = Math.random() < 0.5 ? 85 : 215; // Randomly select x = 50 (rectangle) or x = 210 (circle)
+    const shape = yPos === 85 ? 'rectangle' : 'circle'; // Choose shape based on x position
+    const enemy = new EnemySprite(512, yPos, null, gcanvas, 1, 0, 1, 150, shape, 10); // Start at y = 512
     enemies.push(enemy);
 }
-
 function drawEnemies() {
     enemies.forEach((enemy, index) => {
         enemy.moveTo(-enemySpeed, 0); // Move enemy upwards (from y = 512 to y = 0)
         enemy.draw(); // Draw the enemy
-        if (enemy.y < 0 || enemy.health <= 0) { 
+        if (enemy.y < 0 ) { 
+            enemies.splice(index, 1); // Remove enemies that are off screen
+            RemovePhealth(1);
+        }
+        if (enemy.health <= 0) { 
             enemies.splice(index, 1); // Remove enemies that are off screen
         }
     });
 }
 
+function RemovePhealth(health){
+    Psprite.health -= health
+    if(Psprite.health === 0){
+        drawStartScreen()
+    }
+}
 drawStartScreen();

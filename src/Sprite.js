@@ -1,5 +1,5 @@
 export default class Sprite {
-    constructor(x, y, img, ctx, scale = 1, rot = 0, vibInt = 1, vibFreq = 150, health = 10) {
+    constructor(x, y, img, ctx, scale = 1, rot = 0, vibInt = 1, vibFreq = 150, health = 25) {
         this.x = x;
         this.y = y;
         this.img = img;

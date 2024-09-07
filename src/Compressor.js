@@ -43,8 +43,8 @@ export default class Compressor {
             const similarity = compareMatrices(scaledMatrix, applyReverseMappingToMatrix(convertTemplateToMatrix(template[key])));
             similarities[key] = similarity;
             console.log(`Similarity with template ${key}: ${similarity}%`);
-            if (similarity > 55) {
-                const alteredSimilarity = (similarity - 55) * 100 / 55;
+            if (similarity > 50) {
+                const alteredSimilarity = (similarity - 50) * 100 / 50;
                 console.log(`Similarity altered = ${alteredSimilarity}%`);
                 if (alteredSimilarity > maxSimilarity) {
                     maxSimilarity = alteredSimilarity;

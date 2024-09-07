@@ -5,8 +5,8 @@ export default class AudioManager {
         this.gainNode.connect(this.context.destination);
         this.melodies = {
             '1': 'nopghjklpp',
-            '2': 'a'.repeat(5),
-            '3': 'zzaa'
+            '2': 'a'.repeat(4),
+            '3': 'za'
         };
     }
 
