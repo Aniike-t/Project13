@@ -1,5 +1,5 @@
 export default class Sprite {
-    constructor(x, y, img, ctx, scale = 1, rot = 0, vibInt = 1, vibFreq = 150) {
+    constructor(x, y, img, ctx, scale = 1, rot = 0, vibInt = 1, vibFreq = 150, health = 10) {
         this.x = x;
         this.y = y;
         this.img = img;
@@ -10,6 +10,7 @@ export default class Sprite {
         this.vibFreq = vibFreq;
         this.vibOff = { x: 0, y: 0 };
         this.lastVib = 0;
+        this.health = health;
     }
 
     vibrate() {

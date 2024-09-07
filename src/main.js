@@ -1,14 +1,16 @@
 import AudioManager from './AudioManager.js';
-import {drawRectangle, drawCircle} from './utils/shapes.js';
+import {drawRectangle, drawCircle, drawLightning} from './utils/shapes.js';
 import Compressor from './Compressor.js';
 import Sprite from './Sprite.js';
+import EnemySprite from './EnemySprite.js';
 
 //Main Frame Game 
 const audioManager = new AudioManager();
 const gamecanvas = document.getElementById('game');
 const gcanvas = gamecanvas.getContext('2d');
-gcanvas.canvas.width = 512;
 gcanvas.canvas.height = 256;
+gcanvas.canvas.width = gcanvas.canvas.height*2;
+let topKey = false;
 const color_C3C7CB = '#C3C7CB';
 
 //Draw Methods
@@ -60,24 +62,35 @@ function startGameLoop() {
     gcanvas.save();
     gcanvas.clearRect(0, 0, gcanvas.canvas.width, gcanvas.canvas.height);
     drawRectangle(gcanvas, 0, 0, 512, 256, color_C3C7CB);
-    drawCircle(gcanvas, 470, 52, 15);
+    drawEnemies(gcanvas);
     DrawBorder();
     Psprite.draw();
     Ssprite.draw();
-    Psprite.moveTo(0.2,0);
-    Ssprite.moveTo(0.2,0);
+    drawEnemies(gcanvas);
+
+    if (topKey == '13'){
+        audioManager.playMelody('2',false,0.05);
+        drawLightning(gcanvas, Ssprite.x, Ssprite.y, Math.random() * gcanvas.canvas.width, Math.random() * gcanvas.canvas.width);
+    }
+
+    
+    // Psprite.moveTo(0.2,0);
+    // Ssprite.moveTo(0.2,0);
     gcanvas.restore();
 }
 
 // Game loop function
 function gameLoop() {
     startGameLoop();
+
     requestAnimationFrame(gameLoop);
 }
 
 function onClick() {
-    audioManager.playMelody('melody1',true, 0.3/2);
-    gameLoop()
+    audioManager.playMelody('1',false,0.05);
+    gameLoop();
+    
+    setInterval(spawnEnemy, 5000);
     gamecanvas.removeEventListener('click', onClick);
 }
 gamecanvas.addEventListener('click', onClick);
@@ -88,14 +101,12 @@ gamecanvas.addEventListener('click', onClick);
 function draw(e) {
     if (!painting) return;
     const rect = canvas1.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
     ctx1.beginPath();
-    ctx1.arc(x, y, brushSize / 2, 0, Math.PI * 2);
+    ctx1.arc(e.clientX - rect.left, e.clientY - rect.top, brushSize / 2, 0, Math.PI * 2);
     ctx1.fillStyle = 'black';
     ctx1.fill();
-    const xIndex = Math.floor(x);
-    const yIndex = Math.floor(y);
+    const xIndex = Math.floor(e.clientX - rect.left);
+    const yIndex = Math.floor(e.clientY - rect.top);
     for (let i = xIndex - brushSize / 2; i < xIndex + brushSize / 2; i++) {
         for (let j = yIndex - brushSize / 2; j < yIndex + brushSize / 2; j++) {
             if (i >= 0 && i < size && j >= 0 && j < size) {
@@ -110,13 +121,36 @@ document.getElementById('submit').addEventListener('click', async () => {
     [128, 64, 32, 16].forEach(size => {
         compressedMatrix = new Compressor(compressedMatrix, size).compress(0.10);
     });
-    try {
-        let topKey = await new Compressor(compressedMatrix, 16).compress(0.10, true);
-        console.log(topKey);
-    } catch (error) {
-        console.error(error);
+    topKey = await new Compressor(compressedMatrix, 16).compress(0.10, true);
+    if (topKey === '13') {
+        matrix = Array(size).fill(null).map(() => Array(size).fill(0));
+        setTimeout(() => {
+            topKey = false
+        }, 1000);return;
     }
+    audioManager.playMelody('3');
 });
 
+
+
+let enemies = [];
+const enemySpeed = 0.5; 
+
+function spawnEnemy() {
+    const yPos = Math.random() < 0.5 ? 40 : 215; // Randomly select x = 50 (rectangle) or x = 210 (circle)
+    const shape = yPos === 40 ? 'rectangle' : 'circle'; // Choose shape based on x position
+    const enemy = new EnemySprite(512, yPos, null, gcanvas, 1, 0, 1, 150, shape, 5); // Start at y = 512
+    enemies.push(enemy);
+}
+
+function drawEnemies() {
+    enemies.forEach((enemy, index) => {
+        enemy.moveTo(-enemySpeed, 0); // Move enemy upwards (from y = 512 to y = 0)
+        enemy.draw(); // Draw the enemy
+        if (enemy.y < 0 || enemy.health <= 0) { 
+            enemies.splice(index, 1); // Remove enemies that are off screen
+        }
+    });
+}
 
 drawStartScreen();

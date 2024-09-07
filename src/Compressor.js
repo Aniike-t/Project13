@@ -82,28 +82,20 @@ function compareMatrices(scaledMatrix, templateMatrix) {
 
     for (let i = 0; i < 16; i++) {
         for (let j = 0; j < 16; j++) {
-            const scaledValue = scaledMatrix[i][j];
-            const templateValue = templateMatrix[i][j];
-
-            if (templateValue > threshold) {
+            if (templateMatrix[i][j] > threshold) {
                 onesValueOG++;
-                if (scaledValue === 1) {
+                if (scaledMatrix[i][j] === 1) {
                     countMatch++;
                 } else {
-                    countMatch -= 1.3;
+                    countMatch -= 1.5;
                 }
-            } else if (templateValue >= threshold - 0.2 && scaledValue === 1) {
+            } else if (templateMatrix[i][j] >= threshold - 0.2 && scaledMatrix[i][j] === 1) {
                 countMatch += 0.3;
             }
-
-            if (scaledValue === 1) {
+            if (scaledMatrix[i][j] === 1) {
                 totalScaledOnes++;
             }
         }
     }
-    const balanceFactor = onesValueOG / Math.max(totalScaledOnes, 1);
-    countMatch = countMatch * balanceFactor;
-    countMatch = Math.max(0, countMatch);
-    const similarity = (countMatch / onesValueOG) * 100;
-    return similarity.toFixed(2);
+    return ((Math.max(0, countMatch * onesValueOG / Math.max(totalScaledOnes, 1)) / onesValueOG) * 100).toFixed(2);
 }
