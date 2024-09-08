@@ -18,7 +18,7 @@ export default class EnemySprite extends Sprite {
         this.vibrate(); 
         this.ctx.save();
         this.ctx.translate(this.x + this.vibOff.x, this.y + this.vibOff.y);
-        this.shape === 'rectangle' ? drawRectangle(this.ctx, -50, -50, 11* this.scale, 11* this.scale ) : drawCircle(this.ctx, 0, 0, 11 * this.scale);
+        this.shape === 'rectangle' ? drawRectangle(this.ctx, -50, -50, 12* this.scale, 12* this.scale ) : drawCircle(this.ctx, 0, 0, 12 * this.scale);
         this.shape === 'rectangle' ? drawRectangle(this.ctx, -50, -50, 11* this.scale, 11* this.scale, healthColor(this.maxHealth,this.health)) : drawCircle(this.ctx, 0, 0, 11 * this.scale, healthColor(this.maxHealth,this.health));
         this.ctx.restore();
     }

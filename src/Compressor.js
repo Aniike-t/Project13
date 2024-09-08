@@ -53,6 +53,7 @@ export default class Compressor {
             }
         });
         console.log('Topmost similarity key:', topKey);
+        document.getElementById('i2').innerHTML = 'Top Prediction : '+topKey+'<br>Accuracy :'+maxSimilarity
         return topKey;
     }
 

@@ -9,11 +9,11 @@ const audioManager = new AudioManager();
 const gamecanvas = document.getElementById('game');
 const gcanvas = gamecanvas.getContext('2d');
 gcanvas.canvas.height = 256;
-gcanvas.canvas.width = gcanvas.canvas.height*2+4;
+gcanvas.canvas.width = gcanvas.canvas.height*2;
 let topKey = false;
 let maxHealth = 50;
 const color_C3C7CB = '#C3C7CB';
-
+let score = 0;
 
 //Draw Methods
 const canvas1 = document.getElementById('draw');
@@ -37,6 +37,7 @@ let Psprite, Ssprite;
 Sword.onload = () =>{ 
     Psprite = new Sprite(50, 180, Player, gcanvas, 0.5); 
     Ssprite = new Sprite(85, 180, Sword, gcanvas, 1, Math.PI/1.60); 
+    // gamecanvas.addEventListener('click', onClick);
 }
 
 //Main Game Draw scene
@@ -47,7 +48,6 @@ function drawStartScreen() {
     gcanvas.fillStyle = '#000'; gcanvas.fillRect(x + w - 2, y, 2, h); gcanvas.fillRect(x, y + h - 2, w, 2);
     gcanvas.font = '16px Arial'; gcanvas.textAlign = 'center'; gcanvas.fillStyle = '#000'; gcanvas.fillText('Play', x + w / 2, y + h / 2 + 5);
     DrawBorder(color_C3C7CB);
-
 }
 
 //Draw borders to box
@@ -59,24 +59,35 @@ function DrawBorder(color){
         [gcanvas.canvas.width - 20, 0, 20, gcanvas.canvas.height, color]
     ])drawRectangle(gcanvas, ...rect);
 }
+function ResetPos(){
+    Psprite.y = 180;Ssprite.y = Psprite.y;
+}
+
 
 function startGameLoop() {
+    if(Psprite.health <= 0){
+        location.reload();
+        // gamecanvas.addEventListener('click', onClick);
+        return
+    }
     gcanvas.save();
     gcanvas.clearRect(0, 0, gcanvas.canvas.width, gcanvas.canvas.height);
     drawRectangle(gcanvas, 0, 0, 512, 256, healthColor(maxHealth,Psprite.health));
     drawEnemies(gcanvas);
-    DrawBorder();
     Psprite.draw();
     Ssprite.draw();
-    drawEnemies(gcanvas);
-
     if (topKey == '13'){
         audioManager.playMelody('2',false,0.05);
-        drawLightning(gcanvas, Ssprite.x, Ssprite.y, Math.random() * gcanvas.canvas.width, Math.random() * gcanvas.canvas.width);
-    }
-
+        Ssprite.y = 128;
+        Psprite.y = -999;
+        drawLightning(gcanvas, Ssprite.x+45, Ssprite.y+10, Math.random() * gcanvas.canvas.width, Math.random() * gcanvas.canvas.width);
+    }else{ResetPos();}
+    DrawBorder();
     gcanvas.restore();
 }
+
+
+
 
 // Game loop function
 function gameLoop() {
@@ -85,7 +96,7 @@ function gameLoop() {
 }
 
 function onClick() {
-    audioManager.playMelody('1',true,0.1);
+    audioManager.playMelody('1',true,0.2,0.025);
     gameLoop();
     setInterval(spawnEnemy, 5000);
     gamecanvas.removeEventListener('click', onClick);
@@ -127,7 +138,6 @@ document.getElementById('submit').addEventListener('click', async () => {
         enemies.forEach(enemy => {
             enemy.health -= 5;
         });
-
         setTimeout(() => {
             topKey = false
         }, 1000);return;
@@ -157,15 +167,17 @@ function drawEnemies() {
             RemovePhealth(1);
         }
         if (enemy.health <= 0) { 
-            enemies.splice(index, 1); // Remove enemies that are off screen
+             enemies.splice(index, 1); // Remove enemies that are off screen
+             score+=1; ScoreManager();
         }
     });
 }
+function ScoreManager(){
+    document.getElementById('i1').innerHTML = ' Score : '+score;
+}
 
+ScoreManager()
 function RemovePhealth(health){
     Psprite.health -= health
-    if(Psprite.health === 0){
-        drawStartScreen()
-    }
 }
 drawStartScreen();
