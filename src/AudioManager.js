@@ -7,7 +7,7 @@ export default class AudioManager {
             '1': 'a b n b o b c',
             '2': 'a'.repeat(4),
             '3': 'za',
-            '4': 'o'
+            '4': 'o',
         };
     }
 
@@ -19,7 +19,7 @@ export default class AudioManager {
         const playTone = (index) => {
             if (index >= melody.length) {
                 if (loop) setTimeout(() => playTone(0), interval * 950);  // Restart the melody
-                if(interval>0.05)interval -= 0.01;
+                if(interval>0.09)interval -= 0.005;
                 return;
             }
             const osc = this.context.createOscillator();

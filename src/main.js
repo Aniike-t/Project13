@@ -3,6 +3,8 @@ import {drawRectangle, drawCircle, drawLightning, healthColor} from './utils/sha
 import Compressor from './Compressor.js';
 import Sprite from './Sprite.js';
 import EnemySprite from './EnemySprite.js';
+import Particle from './Particle.js';
+
 
 //Main Frame Game 
 const audioManager = new AudioManager();
@@ -14,6 +16,8 @@ let topKey = false;
 let maxHealth = 50;
 const color_C3C7CB = '#C3C7CB';
 let score = 0;
+let particles = [];
+
 
 //Draw Methods
 const canvas1 = document.getElementById('draw');
@@ -65,26 +69,34 @@ function ResetPos(){
 
 
 function startGameLoop() {
-    if(Psprite.health <= 0){
+    if (Psprite.health <= 0) {
         location.reload();
-        // gamecanvas.addEventListener('click', onClick);
-        return
+        return;
     }
+    
     gcanvas.save();
     gcanvas.clearRect(0, 0, gcanvas.canvas.width, gcanvas.canvas.height);
-    drawRectangle(gcanvas, 0, 0, 512, 256, healthColor(maxHealth,Psprite.health));
+    drawRectangle(gcanvas, 0, 0, 512, 256, healthColor(maxHealth, Psprite.health));
     drawEnemies(gcanvas);
     Psprite.draw();
     Ssprite.draw();
-    if (topKey == '13'){
-        audioManager.playMelody('2',false,0.05);
+
+    if (topKey == '13') {
+        audioManager.playMelody('2', false, 0.05);
         Ssprite.y = 128;
         Psprite.y = -999;
-        drawLightning(gcanvas, Ssprite.x+45, Ssprite.y+10, Math.random() * gcanvas.canvas.width, Math.random() * gcanvas.canvas.width);
-    }else{ResetPos();}
-    DrawBorder();
+        drawLightning(gcanvas, Ssprite.x + 45, Ssprite.y + 10, Math.random() * gcanvas.canvas.width, Math.random() * gcanvas.canvas.width);
+    } else {
+        ResetPos();
+    }
+    
+    particles = particles.filter(particle => particle.draw());
     gcanvas.restore();
+
+    // Draw the border after clearing and restoring the canvas.
+    DrawBorder(color_C3C7CB);
 }
+
 
 
 
@@ -94,11 +106,12 @@ function gameLoop() {
     startGameLoop();
     requestAnimationFrame(gameLoop);
 }
-
+let Sinterval = 5000;
 function onClick() {
     audioManager.playMelody('1',true,0.2,0.025);
     gameLoop();
-    setInterval(spawnEnemy, 5000);
+    setInterval(spawnEnemy, Sinterval);
+    Sinterval -=20;
     gamecanvas.removeEventListener('click', onClick);
 }
 gamecanvas.addEventListener('click', onClick);
@@ -132,7 +145,8 @@ document.getElementById('submit').addEventListener('click', async () => {
         compressedMatrix = new Compressor(compressedMatrix, size).compress(0.10);
     });
     topKey = await new Compressor(compressedMatrix, 16).compress(0.10, true);
-    if (topKey === '13') {
+    if (topKey === '13' && enemies.length!=0) {
+        score+=3;
         matrix = Array(size).fill(null).map(() => Array(size).fill(0));
         //Remove 5 health from every enemy
         enemies.forEach(enemy => {
@@ -141,12 +155,40 @@ document.getElementById('submit').addEventListener('click', async () => {
         setTimeout(() => {
             topKey = false
         }, 1000);return;
+    }else if(topKey === '0' && enemies.length!=0){
+        removeClosestEnemy();
+        score+=1;return;
     }else{
+        score-=1;
         RemovePhealth(1);
     }
+    ScoreManager();
     audioManager.playMelody('3',false, 0.3);
 });
 
+
+
+function removeClosestEnemy() {
+    let closestEnemyIndex = null;
+    let minDistance = Infinity;
+    enemies.forEach((enemy, index) => {
+        let distance = Math.abs(enemy.x - Psprite.x);
+        if (distance < minDistance) {
+            minDistance = distance;
+            closestEnemyIndex = index;
+        }
+    });
+    if (closestEnemyIndex !== null) {
+        let enemy = enemies[closestEnemyIndex];
+        enemies.splice(closestEnemyIndex, 1);
+        score += 1; 
+        ScoreManager(Psprite.health);
+        var k =30;
+        while(k){
+            particles.push(new Particle(enemy.x, enemy.y, gcanvas, 2, Math.random() * Math.PI * 2));k--;
+        }
+    }
+}
 
 
 let enemies = [];
@@ -169,6 +211,10 @@ function drawEnemies() {
         if (enemy.health <= 0) { 
              enemies.splice(index, 1); // Remove enemies that are off screen
              score+=1; ScoreManager();
+             var k =10
+             while(k){
+                 particles.push(new Particle(enemy.x, enemy.y, gcanvas, 2, Math.random() * Math.PI * 2));k--;
+             }
         }
     });
 }
