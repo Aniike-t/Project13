@@ -371,7 +371,9 @@ function onClick() {
     audioManager.playMelody('1',true,0.2,0.025);
     gameLoop();
     setInterval(spawnEnemy, Sinterval);
-    Sinterval -=20;
+    if(Sinterval>2000){
+        Sinterval -=20;
+    }
     gamecanvas.removeEventListener('click', onClick);
 }
 gamecanvas.addEventListener('click', onClick);

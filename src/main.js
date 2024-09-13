@@ -111,7 +111,9 @@ function onClick() {
     audioManager.playMelody('1',true,0.2,0.025);
     gameLoop();
     setInterval(spawnEnemy, Sinterval);
-    Sinterval -=20;
+    if(Sinterval>2000){
+        Sinterval -=20;
+    }
     gamecanvas.removeEventListener('click', onClick);
 }
 gamecanvas.addEventListener('click', onClick);
@@ -183,7 +185,7 @@ function removeClosestEnemy() {
         enemies.splice(closestEnemyIndex, 1);
         score += 1; 
         ScoreManager(Psprite.health);
-        var k =30;
+        var k =40;
         while(k){
             particles.push(new Particle(enemy.x, enemy.y, gcanvas, 2, Math.random() * Math.PI * 2));k--;
         }
@@ -211,9 +213,9 @@ function drawEnemies() {
         if (enemy.health <= 0) { 
              enemies.splice(index, 1); // Remove enemies that are off screen
              score+=1; ScoreManager();
-             var k =10
-             while(k){
-                 particles.push(new Particle(enemy.x, enemy.y, gcanvas, 2, Math.random() * Math.PI * 2));k--;
+             var l =40;
+             while(l){
+                 particles.push(new Particle(enemy.x, enemy.y, gcanvas, 2, Math.random() * Math.PI * 2));l--;
              }
         }
     });
